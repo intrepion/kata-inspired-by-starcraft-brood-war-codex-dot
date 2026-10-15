@@ -1,7 +1,9 @@
 # Cinder Relay
+
 A conflict over a signal relay on the basalt moon Aster.
 
 ## Language
+
 **Ore**: Finite crystal material carried home by workers.
 **Core**: A faction's command structure and ore delivery point.
 **Foundry**: A structure that produces combat units.
@@ -12,3 +14,7 @@ A conflict over a signal relay on the basalt moon Aster.
 **Bulwark**: An armored close-range combat unit that counters skirmishers.
 **Mortar**: A slow siege unit that counters armor and structures.
 **Hollow Array**: The autonomous hostile expedition.
+
+**Current vision**: Ground presently observed by any living friendly unit or building.
+**Explored terrain**: Previously observed ground whose layout remains known after current vision leaves.
+**Scout**: A unit sent to reveal enemy locations and activity.

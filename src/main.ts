@@ -9,6 +9,9 @@ import {
   replay,
   combat,
   mobile,
+  canSee,
+  fogAt,
+  visibleEntities,
   W,
   H,
   DT,
@@ -187,9 +190,12 @@ function point(e: PointerEvent) {
 }
 function order(p: Point) {
   const target =
-    state.entities.find(
+    visibleEntities(state).find(
       (e) => Math.hypot(e.x - p.x, e.y - p.y) < (mobile(e) ? 0.65 : 1),
-    ) ?? state.nodes.find((n) => Math.hypot(n.x - p.x, n.y - p.y) < 1);
+    ) ??
+    state.nodes.find(
+      (n) => canSee(state, 0, n) && Math.hypot(n.x - p.x, n.y - p.y) < 1,
+    );
   issue({
     type: "order",
     ids: selected,
@@ -392,7 +398,8 @@ function draw() {
   for (const n of state.nodes) {
     const x = n.x * 40,
       y = n.y * 40;
-    ctx.fillStyle = n.amount ? "#48bfbf" : "#3a4c56";
+    const current = canSee(state, 0, n);
+    ctx.fillStyle = !current || n.amount ? "#48bfbf" : "#3a4c56";
     for (let i = 0; i < 4; i++) {
       ctx.beginPath();
       ctx.moveTo(x - 23 + i * 13, y + 12);
@@ -402,9 +409,10 @@ function draw() {
     }
     ctx.font = "10px monospace";
     ctx.fillStyle = "#80c6c8";
-    ctx.fillText(String(Math.floor(n.amount)), x, y + 30);
+    ctx.fillText(current ? String(Math.floor(n.amount)) : "ORE", x, y + 30);
   }
-  for (const e of state.entities) {
+  const seenEntities = visibleEntities(state);
+  for (const e of seenEntities) {
     const x = e.x * 40,
       y = e.y * 40,
       c = e.team === 0 ? "#76edd5" : "#f19579";
@@ -499,7 +507,7 @@ function draw() {
     }
     ctx.restore();
     if (e.cooldown > (e.kind === "mortar" ? 1.6 : 0.6)) {
-      const target = state.entities
+      const target = seenEntities
         .filter(
           (a) =>
             a.team !== e.team &&
@@ -528,6 +536,13 @@ function draw() {
       ctx.setLineDash([]);
     }
   }
+  for (let y = 0; y < H; y++)
+    for (let x = 0; x < W; x++) {
+      const fog = fogAt(state, 0, { x: x + 0.5, y: y + 0.5 });
+      if (fog === "visible") continue;
+      ctx.fillStyle = fog === "unexplored" ? "#050b10" : "#050b10b8";
+      ctx.fillRect(x * scale, y * scale, scale, scale);
+    }
   if (drag) {
     ctx.strokeStyle = "#b5ffee";
     ctx.fillStyle = "#76edd520";
@@ -545,7 +560,7 @@ function draw() {
     );
   }
   if (placement) {
-    ctx.strokeStyle = "#fff2a8";
+    ctx.strokeStyle = canSee(state, 0, pointer) ? "#fff2a8" : "#c36b68";
     ctx.strokeRect(
       Math.round(pointer.x) * 40 - 30,
       Math.round(pointer.y) * 40 - 27,
@@ -559,7 +574,11 @@ function draw() {
   ctx.fillText("LUMEN LANDING", 32, 750);
   ctx.textAlign = "right";
   ctx.fillStyle = "#c99480";
-  ctx.fillText("HOLLOW ARRAY", 1248, 750);
+  ctx.fillText(
+    canSee(state, 0, { x: 29, y: 15 }) ? "HOLLOW ARRAY" : "UNSCOUTED TERRITORY",
+    1248,
+    750,
+  );
 }
 let last = performance.now(),
   acc = 0,

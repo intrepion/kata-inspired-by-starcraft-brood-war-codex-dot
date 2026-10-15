@@ -126,7 +126,9 @@ export type Command = {
   attack?: boolean;
 };
 export type State = {
-  version: 1;
+  version: 2;
+  fogStartTick: number;
+  explored: [number[], number[]];
   difficulty: "training" | "standard";
   tick: number;
   nextId: number;
@@ -167,9 +169,12 @@ export function add(
 }
 export function createMatch(
   difficulty: State["difficulty"] = "standard",
+  fogStartTick = 0,
 ): State {
   const s: State = {
-    version: 1,
+    version: 2,
+    fogStartTick,
+    explored: [Array(W * H).fill(0), Array(W * H).fill(0)],
     difficulty,
     tick: 0,
     nextId: 1,
@@ -195,6 +200,7 @@ export function createMatch(
     { id: 1003, x: 11, y: 15, amount: 1200 },
     { id: 1004, x: 21, y: 15, amount: 1200 },
   ];
+  refreshVision(s);
   return s;
 }
 export function supply(s: State, team: 0 | 1) {
@@ -217,7 +223,91 @@ export function supply(s: State, team: 0 | 1) {
   };
 }
 const distance = (a: Point, b: Point) => Math.hypot(a.x - b.x, a.y - b.y);
-export function blocked(s: State, x: number, y: number, ignore?: number) {
+const sightRadius: Record<Kind, number> = {
+  core: 7,
+  worker: 5,
+  foundry: 5,
+  pylon: 5,
+  sentry: 7,
+  dart: 6,
+  bulwark: 5,
+  mortar: 7,
+};
+/** Team-shared current sight, also used by orders and combat acquisition. */
+export function canSee(
+  s: State,
+  team: 0 | 1,
+  point: Point,
+  duringStep = false,
+): boolean {
+  if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) return false;
+  // A migrated match has already simulated its saved tick under the old rules.
+  if (
+    s.tick < s.fogStartTick ||
+    (duringStep && s.fogStartTick > 0 && s.tick === s.fogStartTick)
+  )
+    return true;
+  return s.entities.some((e) => {
+    const radius = e.progress < 1 ? 3 : sightRadius[e.kind];
+    return (
+      e.team === team &&
+      e.hp > 0 &&
+      (e.x - point.x) ** 2 + (e.y - point.y) ** 2 <= radius ** 2
+    );
+  });
+}
+export function fogAt(
+  s: State,
+  team: 0 | 1,
+  point: Point,
+): "visible" | "explored" | "unexplored" {
+  if (canSee(s, team, point)) return "visible";
+  const x = Math.floor(point.x),
+    y = Math.floor(point.y);
+  return x >= 0 && x < W && y >= 0 && y < H && s.explored[team][y * W + x] === 1
+    ? "explored"
+    : "unexplored";
+}
+export function visibleEntities(s: State, team: 0 | 1 = 0): Entity[] {
+  return s.entities.filter((e) => e.team === team || canSee(s, team, e));
+}
+function refreshVision(s: State, duringStep = false): void {
+  if (
+    s.tick < s.fogStartTick ||
+    (duringStep && s.fogStartTick > 0 && s.tick === s.fogStartTick)
+  )
+    return;
+  for (const entity of s.entities) {
+    if (entity.hp <= 0) continue;
+    const radius = entity.progress < 1 ? 3 : sightRadius[entity.kind];
+    for (
+      let y = Math.max(0, Math.floor(entity.y - radius));
+      y < Math.min(H, Math.ceil(entity.y + radius));
+      y++
+    ) {
+      for (
+        let x = Math.max(0, Math.floor(entity.x - radius));
+        x < Math.min(W, Math.ceil(entity.x + radius));
+        x++
+      ) {
+        if (
+          (x + 0.5 - entity.x) ** 2 + (y + 0.5 - entity.y) ** 2 <=
+          radius ** 2
+        )
+          s.explored[entity.team][y * W + x] = 1;
+      }
+    }
+  }
+}
+
+export function blocked(
+  s: State,
+  x: number,
+  y: number,
+  ignore?: number,
+  knownTeam?: 0 | 1,
+  duringStep = false,
+) {
   return (
     x < 1 ||
     y < 1 ||
@@ -228,12 +318,21 @@ export function blocked(s: State, x: number, y: number, ignore?: number) {
       (e) =>
         !mobile(e) &&
         e.id !== ignore &&
+        (knownTeam === undefined ||
+          e.team === knownTeam ||
+          canSee(s, knownTeam, e, duringStep)) &&
         Math.abs(e.x - x) < 0.95 &&
         Math.abs(e.y - y) < 0.95,
     )
   );
 }
-export function pathfind(s: State, from: Point, to: Point, near = 0): Point[] {
+export function pathfind(
+  s: State,
+  from: Point & { team?: 0 | 1 },
+  to: Point,
+  near = 0,
+  duringStep = false,
+): Point[] {
   const start = { x: Math.round(from.x), y: Math.round(from.y) };
   const goal = { x: Math.round(to.x), y: Math.round(to.y) };
   const q = [start],
@@ -254,7 +353,10 @@ export function pathfind(s: State, from: Point, to: Point, near = 0): Point[] {
     ]) {
       const n = { x: p.x + dx, y: p.y + dy },
         key = `${n.x},${n.y}`;
-      if (!seen.has(key) && !blocked(s, n.x, n.y)) {
+      if (
+        !seen.has(key) &&
+        !blocked(s, n.x, n.y, undefined, from.team, duringStep)
+      ) {
         seen.add(key);
         parents.set(key, p);
         q.push(n);
@@ -276,8 +378,9 @@ function setOrder(
   to: Point,
   target?: number,
   near = 0,
+  duringStep = false,
 ) {
-  const path = pathfind(s, e, to, near);
+  const path = pathfind(s, e, to, near, duringStep);
   if (!path.length && distance(e, to) > near + 1) {
     s.message = "Route blocked — choose an accessible destination.";
     e.order = undefined;
@@ -286,7 +389,13 @@ function setOrder(
   e.order = { mode, x: to.x, y: to.y, target, path, retry: 0 };
   return true;
 }
-export function command(s: State, c: Command, team: 0 | 1 = 0, record = true) {
+export function command(
+  s: State,
+  c: Command,
+  team: 0 | 1 = 0,
+  record = true,
+  duringStep = false,
+) {
   if (
     s.winner !== null ||
     (c.kind !== undefined && !Object.hasOwn(specs, c.kind))
@@ -295,6 +404,20 @@ export function command(s: State, c: Command, team: 0 | 1 = 0, record = true) {
   const es = s.entities.filter((e) => c.ids.includes(e.id) && e.team === team);
   if (record && team === 0)
     s.log.push({ tick: s.tick, command: structuredClone(c) });
+  if (c.type === "order" && c.target !== undefined) {
+    const target = s.entities.find((e) => e.id === c.target),
+      node = s.nodes.find((n) => n.id === c.target);
+    if (
+      (target &&
+        target.team !== team &&
+        !canSee(s, team, target, duringStep)) ||
+      (node && !canSee(s, team, node, duringStep))
+    ) {
+      s.message =
+        "Target outside current vision. Scout or attack-move to a location.";
+      return false;
+    }
+  }
   let ok = false;
   for (const e of es) {
     if (c.type === "stop") {
@@ -347,6 +470,10 @@ export function command(s: State, c: Command, team: 0 | 1 = 0, record = true) {
     ) {
       const p = { x: Math.round(c.x ?? 0), y: Math.round(c.y ?? 0) },
         cost = specs[c.kind].cost;
+      if (!canSee(s, team, p, duringStep)) {
+        s.message = "Scout the construction site first.";
+        continue;
+      }
       if (
         blocked(s, p.x, p.y) ||
         s.nodes.some((n) => distance(n, p) < 2) ||
@@ -361,14 +488,14 @@ export function command(s: State, c: Command, team: 0 | 1 = 0, record = true) {
         s.message = "Insufficient ore.";
         continue;
       }
-      const path = pathfind(s, e, p, 1.5);
+      const path = pathfind(s, e, p, 1.5, duringStep);
       if (!path.length && distance(e, p) > 2) {
         s.message = "Worker cannot reach site.";
         continue;
       }
       s.ore[team] -= cost;
       const b = add(s, c.kind, team, p.x, p.y, 0);
-      setOrder(s, e, "build", p, b.id, 1.5);
+      setOrder(s, e, "build", p, b.id, 1.5, duringStep);
       s.message = `Constructing ${c.kind}; keep worker on site.`;
       ok = true;
       break;
@@ -406,9 +533,11 @@ export function command(s: State, c: Command, team: 0 | 1 = 0, record = true) {
             : target
               ? specs[e.kind].range * 0.8
               : 0,
+          duringStep,
         ) || ok;
     }
   }
+  refreshVision(s, duringStep);
   return ok;
 }
 function move(s: State, e: Entity) {
@@ -422,6 +551,7 @@ function move(s: State, e: Entity) {
       e,
       { x: o.x, y: o.y },
       o.mode === "build" || o.mode === "gather" ? 1.5 : 0,
+      true,
     );
     if (!o.path.length) {
       e.order = undefined;
@@ -447,7 +577,8 @@ function ai(s: State) {
     const n = s.nodes
       .filter((n) => n.amount > 0)
       .sort((a, b) => distance(w, a) - distance(w, b))[0];
-    if (n) command(s, { type: "order", ids: [w.id], target: n.id }, 1, false);
+    if (n)
+      command(s, { type: "order", ids: [w.id], target: n.id }, 1, false, true);
   }
   const base = s.entities.find((e) => e.team === 1 && e.kind === "core");
   if (!base) return;
@@ -473,6 +604,7 @@ function ai(s: State) {
       },
       1,
       false,
+      true,
     );
   }
   if (s.difficulty === "standard" || (s.tick >= 600 && s.tick % 60 === 0))
@@ -482,7 +614,7 @@ function ai(s: State) {
       const k: Kind = ["dart", "bulwark", "mortar"][
         Math.floor(s.tick / 60) % 3
       ] as Kind;
-      command(s, { type: "train", ids: [f.id], kind: k }, 1, false);
+      command(s, { type: "train", ids: [f.id], kind: k }, 1, false, true);
     }
   if (
     (s.difficulty === "standard" || s.tick >= 1800) &&
@@ -500,6 +632,7 @@ function ai(s: State) {
       },
       1,
       false,
+      true,
     );
   }
 }
@@ -551,8 +684,8 @@ export function step(s: State) {
         if (distance(e, core) < 2) {
           s.ore[e.team] += e.cargo;
           e.cargo = 0;
-          o.path = pathfind(s, e, n, 1.5);
-        } else if (!o.path.length) o.path = pathfind(s, e, core, 1.5);
+          o.path = pathfind(s, e, n, 1.5, true);
+        } else if (!o.path.length) o.path = pathfind(s, e, core, 1.5, true);
       } else if (n.amount === 0) {
         e.order = undefined;
       } else if (distance(e, n) < 2) {
@@ -560,15 +693,23 @@ export function step(s: State) {
         e.cargo += mined;
         n.amount -= mined;
         o.path = [];
-      } else if (!o.path.length) o.path = pathfind(s, e, n, 1.5);
+      } else if (!o.path.length) o.path = pathfind(s, e, n, 1.5, true);
     }
     let enemy = s.entities.find(
-      (a) => a.id === o?.target && a.team !== e.team && a.hp > 0,
+      (a) =>
+        a.id === o?.target &&
+        a.team !== e.team &&
+        a.hp > 0 &&
+        canSee(s, e.team, a, true),
     );
     if (!enemy || distance(e, enemy) > sp.range)
       enemy = s.entities
         .filter(
-          (a) => a.team !== e.team && a.hp > 0 && distance(e, a) <= sp.range,
+          (a) =>
+            a.team !== e.team &&
+            a.hp > 0 &&
+            distance(e, a) <= sp.range &&
+            canSee(s, e.team, a, true),
         )
         .sort((a, b) => distance(e, a) - distance(e, b))[0];
     if (enemy && sp.damage && (!o || o.mode === "attack" || !mobile(e))) {
@@ -588,8 +729,17 @@ export function step(s: State) {
     if (o?.mode === "attack" && o.target) {
       const t = s.entities.find((a) => a.id === o.target);
       if (!t) e.order = undefined;
-      else if (!o.path.length && distance(e, t) > sp.range)
-        o.path = pathfind(s, e, t, sp.range * 0.8);
+      else if (!canSee(s, e.team, t, true)) {
+        o.target = undefined; // Continue only to the last observed position.
+        o.path = pathfind(s, e, o, 0, true);
+      } else {
+        if (s.tick > s.fogStartTick || s.fogStartTick === 0) {
+          o.x = t.x;
+          o.y = t.y;
+        }
+        if (!o.path.length && distance(e, t) > sp.range)
+          o.path = pathfind(s, e, t, sp.range * 0.8, true);
+      }
     }
     if (mobile(e)) move(s, e);
     if (
@@ -618,6 +768,7 @@ export function step(s: State) {
     }
   }
   s.entities = s.entities.filter((e) => e.hp > 0);
+  refreshVision(s);
   for (const team of [0, 1] as const) {
     const own = s.entities.some(
       (e) =>
@@ -638,8 +789,9 @@ export function save(s: State) {
 }
 export function load(raw: string): State {
   const s = JSON.parse(raw) as State;
+  const version = (s as { version: number }).version;
   if (
-    s.version !== 1 ||
+    ![1, 2].includes(version) ||
     !["training", "standard"].includes(s.difficulty) ||
     !Number.isInteger(s.tick) ||
     s.tick < 0 ||
@@ -700,11 +852,31 @@ export function load(raw: string): State {
   )
     throw Error("Invalid ore");
   validateStateDetails(s);
+  if (version === 1) {
+    s.version = 2;
+    s.fogStartTick = s.tick;
+    s.explored = [Array(W * H).fill(0), Array(W * H).fill(0)];
+    refreshVision(s);
+  } else if (
+    !Number.isInteger(s.fogStartTick) ||
+    s.fogStartTick < 0 ||
+    s.fogStartTick > s.tick ||
+    !Array.isArray(s.explored) ||
+    s.explored.length !== 2 ||
+    !s.explored.every(
+      (grid) =>
+        Array.isArray(grid) &&
+        grid.length === W * H &&
+        grid.every((cell) => cell === 0 || cell === 1),
+    )
+  ) {
+    throw Error("Invalid visibility state");
+  }
   return s;
 }
 export function replay(s: State) {
   return {
-    state: createMatch(s.difficulty),
+    state: createMatch(s.difficulty, s.fogStartTick),
     log: structuredClone(s.log),
     end: s.tick,
     index: 0,

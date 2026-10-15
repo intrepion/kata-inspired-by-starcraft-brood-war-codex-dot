@@ -1,0 +1,263 @@
+{
+  "version": 1,
+  "difficulty": "training",
+  "tick": 30,
+  "nextId": 15,
+  "ore": [320, 320],
+  "entities": [
+    {
+      "id": 1,
+      "kind": "core",
+      "team": 0,
+      "x": 3,
+      "y": 10,
+      "hp": 1400,
+      "progress": 1,
+      "queue": [],
+      "production": 0,
+      "cooldown": 0,
+      "cargo": 0
+    },
+    {
+      "id": 2,
+      "kind": "core",
+      "team": 1,
+      "x": 29,
+      "y": 10,
+      "hp": 1400,
+      "progress": 1,
+      "queue": [],
+      "production": 0,
+      "cooldown": 0,
+      "cargo": 0
+    },
+    {
+      "id": 3,
+      "kind": "worker",
+      "team": 0,
+      "x": 5,
+      "y": 8,
+      "hp": 55,
+      "progress": 1,
+      "queue": [],
+      "production": 0,
+      "cooldown": 0,
+      "cargo": 0
+    },
+    {
+      "id": 4,
+      "kind": "worker",
+      "team": 0,
+      "x": 5,
+      "y": 9,
+      "hp": 55,
+      "progress": 1,
+      "queue": [],
+      "production": 0,
+      "cooldown": 0,
+      "cargo": 0
+    },
+    {
+      "id": 5,
+      "kind": "worker",
+      "team": 0,
+      "x": 5,
+      "y": 10,
+      "hp": 55,
+      "progress": 1,
+      "queue": [],
+      "production": 0,
+      "cooldown": 0,
+      "cargo": 0
+    },
+    {
+      "id": 6,
+      "kind": "worker",
+      "team": 0,
+      "x": 5,
+      "y": 11,
+      "hp": 55,
+      "progress": 1,
+      "queue": [],
+      "production": 0,
+      "cooldown": 0,
+      "cargo": 0
+    },
+    {
+      "id": 7,
+      "kind": "foundry",
+      "team": 0,
+      "x": 3,
+      "y": 15,
+      "hp": 420,
+      "progress": 1,
+      "queue": [],
+      "production": 0,
+      "cooldown": 0,
+      "cargo": 0
+    },
+    {
+      "id": 8,
+      "kind": "dart",
+      "team": 0,
+      "x": 13.64,
+      "y": 13,
+      "hp": 80,
+      "progress": 1,
+      "queue": [],
+      "production": 0,
+      "cooldown": 0,
+      "cargo": 0,
+      "order": {
+        "mode": "attack",
+        "x": 27,
+        "y": 8,
+        "target": 9,
+        "path": [
+          { "x": 14, "y": 13 },
+          { "x": 15, "y": 13 },
+          { "x": 16, "y": 13 },
+          { "x": 17, "y": 13 },
+          { "x": 18, "y": 13 },
+          { "x": 19, "y": 13 },
+          { "x": 20, "y": 13 },
+          { "x": 21, "y": 13 },
+          { "x": 22, "y": 13 },
+          { "x": 23, "y": 13 },
+          { "x": 24, "y": 13 },
+          { "x": 25, "y": 13 },
+          { "x": 26, "y": 13 },
+          { "x": 26, "y": 12 },
+          { "x": 26, "y": 11 },
+          { "x": 26, "y": 10 }
+        ],
+        "retry": 0
+      }
+    },
+    {
+      "id": 9,
+      "kind": "worker",
+      "team": 1,
+      "x": 27,
+      "y": 7.414999999999996,
+      "hp": 55,
+      "progress": 1,
+      "queue": [],
+      "production": 0,
+      "cooldown": 0,
+      "cargo": 5,
+      "order": {
+        "mode": "gather",
+        "x": 27,
+        "y": 6,
+        "target": 1002,
+        "path": [],
+        "retry": 0
+      }
+    },
+    {
+      "id": 10,
+      "kind": "worker",
+      "team": 1,
+      "x": 27,
+      "y": 7.940000000000003,
+      "hp": 55,
+      "progress": 1,
+      "queue": [],
+      "production": 0,
+      "cooldown": 0,
+      "cargo": 3,
+      "order": {
+        "mode": "gather",
+        "x": 27,
+        "y": 6,
+        "target": 1002,
+        "path": [],
+        "retry": 0
+      }
+    },
+    {
+      "id": 11,
+      "kind": "worker",
+      "team": 1,
+      "x": 27,
+      "y": 7.765000000000001,
+      "hp": 55,
+      "progress": 1,
+      "queue": [],
+      "production": 0,
+      "cooldown": 0,
+      "cargo": 1,
+      "order": {
+        "mode": "gather",
+        "x": 27,
+        "y": 6,
+        "target": 1002,
+        "path": [],
+        "retry": 0
+      }
+    },
+    {
+      "id": 12,
+      "kind": "worker",
+      "team": 1,
+      "x": 27,
+      "y": 8.270000000000001,
+      "hp": 55,
+      "progress": 1,
+      "queue": [],
+      "production": 0,
+      "cooldown": 0,
+      "cargo": 0,
+      "order": {
+        "mode": "gather",
+        "x": 27,
+        "y": 6,
+        "target": 1002,
+        "path": [
+          { "x": 27, "y": 8 },
+          { "x": 27, "y": 7 }
+        ],
+        "retry": 0
+      }
+    },
+    {
+      "id": 13,
+      "kind": "foundry",
+      "team": 1,
+      "x": 29,
+      "y": 15,
+      "hp": 420,
+      "progress": 1,
+      "queue": [],
+      "production": 0,
+      "cooldown": 0,
+      "cargo": 0
+    },
+    {
+      "id": 14,
+      "kind": "dart",
+      "team": 1,
+      "x": 26,
+      "y": 13,
+      "hp": 80,
+      "progress": 1,
+      "queue": [],
+      "production": 0,
+      "cooldown": 0,
+      "cargo": 0
+    }
+  ],
+  "nodes": [
+    { "id": 1001, "x": 5, "y": 6, "amount": 1800 },
+    { "id": 1002, "x": 27, "y": 6, "amount": 1791 },
+    { "id": 1003, "x": 11, "y": 15, "amount": 1200 },
+    { "id": 1004, "x": 21, "y": 15, "amount": 1200 }
+  ],
+  "relay": [0, 0],
+  "winner": null,
+  "message": "Attack order issued.",
+  "log": [
+    { "tick": 0, "command": { "type": "order", "ids": [8], "target": 9 } }
+  ]
+}
