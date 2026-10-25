@@ -26,3 +26,7 @@ No multiplayer, technology tree, air units, multiple playable factions, touch-sp
 ## Scouting correction (2026-10-15)
 
 [Focused contract and evidence](docs/FOG_FIDELITY.md). New v2 saves retain explored terrain; original v1 economy, units, queues, orders and command log migrate without reset. Historical replays retain original rules until the saved migration tick, then enable fog. Current vision radii are authored values; no high-ground, cover, detector, second-resource, faction or camera expansion is claimed. Scouting reveal/concealment, frontier reload, relay victory and matching replay passed [normal-input acceptance](docs/LOCAL_ACCEPTANCE_2026-10-15.md).
+
+## Play online
+
+[Play the hosted game](https://intrepion.github.io/kata-inspired-by-starcraft-brood-war-codex-dot/)
