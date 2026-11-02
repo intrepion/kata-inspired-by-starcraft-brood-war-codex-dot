@@ -30,3 +30,7 @@ No multiplayer, technology tree, air units, multiple playable factions, touch-sp
 ## Play online
 
 [Play the hosted game](https://intrepion.github.io/kata-inspired-by-starcraft-brood-war-codex-dot/)
+
+## Arcade metadata
+
+See [docs/arcade-metadata.md](docs/arcade-metadata.md) for the game-owned manifest and screenshot provenance.
