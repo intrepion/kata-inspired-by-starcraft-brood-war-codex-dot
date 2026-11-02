@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "gameId": "kata-inspired-by-starcraft-brood-war-codex-dot",
   "playUrl": "https://intrepion.github.io/kata-inspired-by-starcraft-brood-war-codex-dot/",
   "screenshots": [
@@ -23,6 +23,46 @@
         "sourcePath": "docs/screenshots/assault.jpg",
         "deployedBuild": null,
         "captureDate": null
+      }
+    },
+    {
+      "path": "arcade/screenshots/ci-20261102-01.jpg",
+      "sha256": "07986e3faab269f4470ce9da733b69006512e01745c428b61657de02cdb78b4e",
+      "alt": "Cinder Relay gameplay, view 1",
+      "provenance": {
+        "kind": "ci_gameplay_capture",
+        "sourcePath": "arcade/capture-evidence/ci-20261102-01.png",
+        "sourceSha256": "7e2f870885a79636e565e37272e7e388d33dc43949874625930f64aa6cd54686",
+        "captureCommit": "fbd8b295ff34c5761fc807c7c18b8bfab33275fe",
+        "workflowRunId": "41439799699",
+        "inputHashes": {
+          "index.html": "4276e05930d9ca0431178bba7233cf9c7265abdb921e215301336ab58374f625",
+          "styles.css": "876c5f97b294faf6d9646f968aed017f0b9a129945b055e5b686e02c9a0f0c6b",
+          "game.js": "28d01ebc8586add965622b18b6100134f2ac331cb37793d0e260eb1f1be450e1"
+        },
+        "publishedFilesVerifiedAt": "2026-11-02T19:01:20Z",
+        "captureRecordPath": "arcade/capture-evidence/ci-20261102-record.json",
+        "captureRecordSha256": "ab2e21ac2b8a63c73a9b7731cd6afa502fdcdb3483c627b5cf2c92cb37fd407e"
+      }
+    },
+    {
+      "path": "arcade/screenshots/ci-20261102-02.jpg",
+      "sha256": "d59eb1ccfaa47f658d0ab8298ef334cc59fb96514edab9469ca42700214d6da5",
+      "alt": "Cinder Relay gameplay, view 2",
+      "provenance": {
+        "kind": "ci_gameplay_capture",
+        "sourcePath": "arcade/capture-evidence/ci-20261102-02.png",
+        "sourceSha256": "93f751930e5017f7923ae26ddb49d5084cbb3f4e4767159585d327ba5fcc4d0c",
+        "captureCommit": "fbd8b295ff34c5761fc807c7c18b8bfab33275fe",
+        "workflowRunId": "41439799699",
+        "inputHashes": {
+          "index.html": "4276e05930d9ca0431178bba7233cf9c7265abdb921e215301336ab58374f625",
+          "styles.css": "876c5f97b294faf6d9646f968aed017f0b9a129945b055e5b686e02c9a0f0c6b",
+          "game.js": "28d01ebc8586add965622b18b6100134f2ac331cb37793d0e260eb1f1be450e1"
+        },
+        "publishedFilesVerifiedAt": "2026-11-02T19:01:20Z",
+        "captureRecordPath": "arcade/capture-evidence/ci-20261102-record.json",
+        "captureRecordSha256": "ab2e21ac2b8a63c73a9b7731cd6afa502fdcdb3483c627b5cf2c92cb37fd407e"
       }
     }
   ]
