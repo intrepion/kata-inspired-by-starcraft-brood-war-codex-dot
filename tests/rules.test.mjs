@@ -47,6 +47,7 @@ test("worker construction completes and increases supply", () => {
 test("queues reserve supply and reject overflow without charging", () => {
   const s = createMatch();
   s.ore[0] = 1000;
+  s.gas[0] = 100;
   const f = s.entities.find((e) => e.team === 0 && e.kind === "foundry");
   command(s, { type: "train", ids: [f.id], kind: "mortar" });
   const before = s.ore[0];
@@ -280,4 +281,56 @@ test("save validation rejects inherited prototype names as unit kinds", () => {
     mutate(s);
     assert.throws(() => load(save(s)));
   }
+});
+test("gas gathering gates mortars, refunds both resources, and survives saves", () => {
+  const s = createMatch(),
+    worker = s.entities.find((e) => e.team === 0 && e.kind === "worker");
+  const gas = s.nodes.find((n) => n.kind === "gas" && n.x < 16),
+    f = s.entities.find((e) => e.team === 0 && e.kind === "foundry");
+  assert.equal(
+    command(s, { type: "train", ids: [f.id], kind: "mortar" }),
+    false,
+  );
+  assert.equal(
+    command(s, { type: "order", ids: [worker.id], target: gas.id }),
+    true,
+  );
+  run(s, 600);
+  assert.ok(s.gas[0] >= 25);
+  const ore = s.ore[0],
+    fuel = s.gas[0];
+  assert.equal(
+    command(s, { type: "train", ids: [f.id], kind: "mortar" }),
+    true,
+  );
+  assert.equal(s.gas[0], fuel - 25);
+  command(s, { type: "cancel", ids: [f.id] });
+  assert.equal(s.ore[0], ore - 25);
+  assert.equal(s.gas[0], fuel - 7);
+  const restored = load(save(s));
+  assert.equal(restored.economy, "gas");
+  assert.deepEqual(restored.gas, s.gas);
+});
+test("AI collects gas and can produce a mortar without privileged resources", () => {
+  const s = createMatch();
+  run(s, 700);
+  assert.ok(
+    s.entities.some((e) => e.team === 1 && e.kind === "mortar") ||
+      s.entities.some((e) => e.team === 1 && e.queue.includes("mortar")),
+  );
+  assert.ok(s.nodes.find((n) => n.kind === "gas" && n.x > 16).amount < 1200);
+});
+test("workers deliver existing gas before gathering ore after a new order", () => {
+  const s = createMatch("training"),
+    w = s.entities.find((e) => e.team === 0 && e.kind === "worker");
+  const gas = s.nodes.find((n) => n.kind === "gas" && n.x < 16),
+    ore = s.nodes.find((n) => !n.kind && n.x < 10);
+  command(s, { type: "order", ids: [w.id], target: gas.id });
+  for (let i = 0; i < 300 && w.cargo < 2; i++) step(s);
+  assert.equal(w.cargoKind, "gas");
+  const carried = w.cargo;
+  command(s, { type: "order", ids: [w.id], target: ore.id });
+  for (let i = 0; i < 300 && s.gas[0] === 0; i++) step(s);
+  assert.equal(s.gas[0], carried);
+  assert.equal(s.ore[0], 320);
 });

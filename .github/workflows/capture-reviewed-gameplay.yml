@@ -1,0 +1,37 @@
+name: Capture reviewed gameplay
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['arcade/**', 'public/arcade/**', 'docs/arcade-metadata.md', 'README.md']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - run: cp -R public/arcade dist/arcade
+      - run: npm install --no-save --ignore-scripts --package-lock=false playwright@1.63.0
+      - run: npx playwright install --with-deps chromium
+      - name: Capture genuine gameplay on loopback
+        run: |
+          python3 -m http.server 4280 --bind 127.0.0.1 --directory dist >/tmp/capture-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid"' EXIT
+          for i in $(seq 1 40); do curl --fail --silent http://127.0.0.1:4280/ >/dev/null && break; sleep 0.25; done
+          node scripts/capture-reviewed-gameplay.cjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reviewed-gameplay
+          path: capture-output/
+          retention-days: 30

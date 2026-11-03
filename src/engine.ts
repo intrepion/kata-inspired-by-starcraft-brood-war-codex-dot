@@ -114,6 +114,7 @@ export type Entity = Point & {
   production: number;
   cooldown: number;
   cargo: number;
+  cargoKind?: "ore" | "gas";
   order?: Order;
 };
 export type Command = {
@@ -127,6 +128,8 @@ export type Command = {
 };
 export type State = {
   version: 2;
+  economy: "classic" | "gas";
+  gas: [number, number];
   fogStartTick: number;
   explored: [number[], number[]];
   difficulty: "training" | "standard";
@@ -134,7 +137,7 @@ export type State = {
   nextId: number;
   ore: [number, number];
   entities: Entity[];
-  nodes: (Point & { id: number; amount: number })[];
+  nodes: (Point & { id: number; amount: number; kind?: "ore" | "gas" })[];
   relay: [number, number];
   winner: null | 0 | 1;
   message: string;
@@ -170,9 +173,12 @@ export function add(
 export function createMatch(
   difficulty: State["difficulty"] = "standard",
   fogStartTick = 0,
+  economy: State["economy"] = "gas",
 ): State {
   const s: State = {
     version: 2,
+    economy,
+    gas: [0, 0],
     fogStartTick,
     explored: [Array(W * H).fill(0), Array(W * H).fill(0)],
     difficulty,
@@ -183,7 +189,8 @@ export function createMatch(
     nodes: [],
     relay: [0, 0],
     winner: null,
-    message: "Select workers, then right-click ore to harvest.",
+    message:
+      "Select workers, then right-click cyan ore or amber gas to harvest.",
     log: [],
   };
   add(s, "core", 0, 3, 10);
@@ -200,6 +207,11 @@ export function createMatch(
     { id: 1003, x: 11, y: 15, amount: 1200 },
     { id: 1004, x: 21, y: 15, amount: 1200 },
   ];
+  if (economy === "gas")
+    s.nodes.push(
+      { id: 1005, x: 8, y: 5, amount: 1200, kind: "gas" },
+      { id: 1006, x: 24, y: 5, amount: 1200, kind: "gas" },
+    );
   refreshVision(s);
   return s;
 }
@@ -440,12 +452,14 @@ export function command(
       if (
         e.queue.length >= 5 ||
         su.used + sp.supply > su.cap ||
-        s.ore[team] < sp.cost
+        s.ore[team] < sp.cost ||
+        (s.economy === "gas" && k === "mortar" && s.gas[team] < 25)
       ) {
-        s.message = "Need ore, supply, or queue space.";
+        s.message = "Need ore, gas, supply, or queue space.";
         continue;
       }
       s.ore[team] -= sp.cost;
+      if (s.economy === "gas" && k === "mortar") s.gas[team] -= 25;
       e.queue.push(k);
       s.message = `${k} queued`;
       ok = true;
@@ -456,7 +470,10 @@ export function command(
         s.entities = s.entities.filter((a) => a.id !== e.id);
         ok = true;
       } else if (e.queue.length) {
-        s.ore[team] += Math.floor(specs[e.queue.pop()!].cost * 0.75);
+        const cancelled = e.queue.pop()!;
+        s.ore[team] += Math.floor(specs[cancelled].cost * 0.75);
+        if (s.economy === "gas" && cancelled === "mortar")
+          s.gas[team] += Math.floor(25 * 0.75);
         if (!e.queue.length) e.production = 0;
         ok = true;
       }
@@ -520,7 +537,7 @@ export function command(
         e.kind === "worker"
       )
         mode = "build";
-      s.message = `${mode === "gather" ? "Harvesting ore" : mode === "build" ? "Resuming construction" : mode === "attack" ? "Attack order issued" : "Move order issued"}.`;
+      s.message = `${mode === "gather" ? (node?.kind === "gas" ? "Harvesting gas" : "Harvesting ore") : mode === "build" ? "Resuming construction" : mode === "attack" ? "Attack order issued" : "Move order issued"}.`;
       ok =
         setOrder(
           s,
@@ -574,8 +591,17 @@ function ai(s: State) {
   for (const w of s.entities.filter(
     (e) => e.team === 1 && e.kind === "worker" && !e.order,
   )) {
+    const needsGas =
+      s.economy === "gas" &&
+      !s.entities.some(
+        (e) =>
+          e.team === 1 &&
+          e.kind === "worker" &&
+          e.order?.mode === "gather" &&
+          s.nodes.some((n) => n.id === e.order?.target && n.kind === "gas"),
+      );
     const n = s.nodes
-      .filter((n) => n.amount > 0)
+      .filter((n) => n.amount > 0 && (n.kind === "gas") === needsGas)
       .sort((a, b) => distance(w, a) - distance(w, b))[0];
     if (n)
       command(s, { type: "order", ids: [w.id], target: n.id }, 1, false, true);
@@ -680,16 +706,22 @@ export function step(s: State) {
       );
       if (!n || !core) {
         e.order = undefined;
-      } else if (e.cargo >= 10 || (n.amount === 0 && e.cargo > 0)) {
+      } else if (
+        e.cargo >= 10 ||
+        (e.cargo > 0 &&
+          (n.amount === 0 || (e.cargoKind ?? "ore") !== (n.kind ?? "ore")))
+      ) {
         if (distance(e, core) < 2) {
-          s.ore[e.team] += e.cargo;
+          (e.cargoKind === "gas" ? s.gas : s.ore)[e.team] += e.cargo;
           e.cargo = 0;
+          delete e.cargoKind;
           o.path = pathfind(s, e, n, 1.5, true);
         } else if (!o.path.length) o.path = pathfind(s, e, core, 1.5, true);
       } else if (n.amount === 0) {
         e.order = undefined;
       } else if (distance(e, n) < 2) {
         const mined = Math.min(10 - e.cargo, n.amount, DT * 5);
+        if (mined > 0 && n.kind === "gas") e.cargoKind = "gas";
         e.cargo += mined;
         n.amount -= mined;
         o.path = [];
@@ -790,6 +822,18 @@ export function save(s: State) {
 export function load(raw: string): State {
   const s = JSON.parse(raw) as State;
   const version = (s as { version: number }).version;
+  // Older v1/v2 matches retain their ore-only economy and deterministic replay.
+  if (s.economy === undefined) {
+    s.economy = "classic";
+    s.gas = [0, 0];
+  }
+  if (
+    !["classic", "gas"].includes(s.economy) ||
+    !Array.isArray(s.gas) ||
+    s.gas.length !== 2 ||
+    !s.gas.every((n) => Number.isFinite(n) && n >= 0)
+  )
+    throw Error("Invalid economy");
   if (
     ![1, 2].includes(version) ||
     !["training", "standard"].includes(s.difficulty) ||
@@ -812,6 +856,7 @@ export function load(raw: string): State {
   for (const e of s.entities) {
     if (
       !Object.hasOwn(specs, e.kind) ||
+      (e.cargoKind !== undefined && !["ore", "gas"].includes(e.cargoKind)) ||
       ![0, 1].includes(e.team) ||
       ![
         e.id,
@@ -847,7 +892,10 @@ export function load(raw: string): State {
     throw Error("Invalid identifiers");
   if (
     !s.nodes.every(
-      (n) => [n.id, n.x, n.y, n.amount].every(Number.isFinite) && n.amount >= 0,
+      (n) =>
+        [n.id, n.x, n.y, n.amount].every(Number.isFinite) &&
+        n.amount >= 0 &&
+        (n.kind === undefined || ["ore", "gas"].includes(n.kind)),
     )
   )
     throw Error("Invalid ore");
@@ -876,7 +924,7 @@ export function load(raw: string): State {
 }
 export function replay(s: State) {
   return {
-    state: createMatch(s.difficulty, s.fogStartTick),
+    state: createMatch(s.difficulty, s.fogStartTick, s.economy),
     log: structuredClone(s.log),
     end: s.tick,
     index: 0,

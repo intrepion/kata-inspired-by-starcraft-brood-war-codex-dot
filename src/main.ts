@@ -286,7 +286,7 @@ function renderUI() {
     first = es[0],
     su = supply(state, 0);
   $("economy").innerHTML =
-    `ORE <b>${Math.floor(state.ore[0])}</b> &nbsp; SUPPLY <b>${su.used}/${su.cap}</b><br><small>Relay: ${state.relay[0].toFixed(1)} / 60s · Hostile: ${state.relay[1].toFixed(1)}s</small>`;
+    `ORE <b>${Math.floor(state.ore[0])}</b> ${state.economy === "gas" ? `&nbsp; GAS <b>${Math.floor(state.gas[0])}</b>` : ""} &nbsp; SUPPLY <b>${su.used}/${su.cap}</b><br><small>Relay: ${state.relay[0].toFixed(1)} / 60s · Hostile: ${state.relay[1].toFixed(1)}s</small>`;
   $("clock").textContent =
     `${Math.floor(state.tick / 600)}:${String(Math.floor(state.tick / 10) % 60).padStart(2, "0")}`;
   $("status").textContent = replaying
@@ -351,7 +351,7 @@ function renderUI() {
         ? ["worker"]
         : ["dart", "bulwark", "mortar"]) as Kind[])
         button(
-          `Train ${k} · ${specs[k].cost} ore · ${specs[k].supply} supply`,
+          `Train ${k} · ${specs[k].cost} ore${state.economy === "gas" && k === "mortar" ? " + 25 gas" : ""} · ${specs[k].supply} supply`,
           () => issue({ type: "train", ids: [first.id], kind: k }),
         );
     }
@@ -399,7 +399,12 @@ function draw() {
     const x = n.x * 40,
       y = n.y * 40;
     const current = canSee(state, 0, n);
-    ctx.fillStyle = !current || n.amount ? "#48bfbf" : "#3a4c56";
+    ctx.fillStyle =
+      !current || n.amount
+        ? n.kind === "gas"
+          ? "#edaa64"
+          : "#48bfbf"
+        : "#3a4c56";
     for (let i = 0; i < 4; i++) {
       ctx.beginPath();
       ctx.moveTo(x - 23 + i * 13, y + 12);
@@ -409,7 +414,11 @@ function draw() {
     }
     ctx.font = "10px monospace";
     ctx.fillStyle = "#80c6c8";
-    ctx.fillText(current ? String(Math.floor(n.amount)) : "ORE", x, y + 30);
+    ctx.fillText(
+      `${n.kind === "gas" ? "GAS" : "ORE"}${current ? " " + Math.floor(n.amount) : ""}`,
+      x,
+      y + 30,
+    );
   }
   const seenEntities = visibleEntities(state);
   for (const e of seenEntities) {
