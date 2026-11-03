@@ -4,65 +4,43 @@
   "playUrl": "https://intrepion.github.io/kata-inspired-by-starcraft-brood-war-codex-dot/",
   "screenshots": [
     {
-      "path": "arcade/screenshots/view-01.jpg",
-      "sha256": "e9e105d7197b7accffb59a5e6ac0d74c1ca7d585764f2e4c6ac12e45a2525982",
-      "alt": "Gameplay capture 1",
-      "provenance": {
-        "kind": "existing_repository_capture",
-        "sourcePath": "docs/screenshots/combat.jpg",
-        "deployedBuild": null,
-        "captureDate": null
-      }
-    },
-    {
-      "path": "arcade/screenshots/view-02.jpg",
-      "sha256": "8776fc224ae4d844387d6e23b94cfb2800917f83398514fb39432939a63ce9d2",
-      "alt": "Gameplay capture 2",
-      "provenance": {
-        "kind": "existing_repository_capture",
-        "sourcePath": "docs/screenshots/assault.jpg",
-        "deployedBuild": null,
-        "captureDate": null
-      }
-    },
-    {
-      "path": "arcade/screenshots/ci-20261102-01.jpg",
-      "sha256": "07986e3faab269f4470ce9da733b69006512e01745c428b61657de02cdb78b4e",
-      "alt": "Cinder Relay gameplay, view 1",
+      "path": "arcade/screenshots/review-20261103-01.jpg",
+      "sha256": "f576deaaedaa81079c1e6c3614f14bc5b014acc94b237423763824aa4e89a7df",
+      "alt": "Cinder Relay gameplay after the mechanics update, view 1",
       "provenance": {
         "kind": "ci_gameplay_capture",
-        "sourcePath": "arcade/capture-evidence/ci-20261102-01.png",
-        "sourceSha256": "7e2f870885a79636e565e37272e7e388d33dc43949874625930f64aa6cd54686",
-        "captureCommit": "fbd8b295ff34c5761fc807c7c18b8bfab33275fe",
-        "workflowRunId": "41439799699",
+        "sourcePath": "arcade/capture-evidence/review-20261103-01.png",
+        "sourceSha256": "37ab5cba766083002ffd1d6848a5b666520635201d1eb665bce5ff8ed25aadb4",
+        "captureCommit": "d61397125043d67ca197302489bac2f91b1ab6ac",
+        "workflowRunId": "41676504176",
         "inputHashes": {
-          "index.html": "4276e05930d9ca0431178bba7233cf9c7265abdb921e215301336ab58374f625",
+          "index.html": "9d98455a47104daa191b0f68631ae009b12a2fbf3e9badaa89e711f699fa729f",
           "styles.css": "876c5f97b294faf6d9646f968aed017f0b9a129945b055e5b686e02c9a0f0c6b",
-          "game.js": "28d01ebc8586add965622b18b6100134f2ac331cb37793d0e260eb1f1be450e1"
+          "game.js": "70097c96086829e90abbc9afefb97e51c72e04065cc235b7a6850328f5505597"
         },
-        "publishedFilesVerifiedAt": "2026-11-02T19:01:20Z",
-        "captureRecordPath": "arcade/capture-evidence/ci-20261102-record.json",
-        "captureRecordSha256": "ab2e21ac2b8a63c73a9b7731cd6afa502fdcdb3483c627b5cf2c92cb37fd407e"
+        "publishedFilesVerifiedAt": "2026-11-03T16:43:43Z",
+        "captureRecordPath": "arcade/capture-evidence/review-20261103-record.json",
+        "captureRecordSha256": "82683a2e4b83acff057775a2a538576db8ed908631247ea9fadf8065f26a720b"
       }
     },
     {
-      "path": "arcade/screenshots/ci-20261102-02.jpg",
-      "sha256": "d59eb1ccfaa47f658d0ab8298ef334cc59fb96514edab9469ca42700214d6da5",
-      "alt": "Cinder Relay gameplay, view 2",
+      "path": "arcade/screenshots/review-20261103-02.jpg",
+      "sha256": "50dd60bbc5b6f4852e90a57a5b8d9ef0b4dd0007aaa074c419dc1098fa514bc4",
+      "alt": "Cinder Relay gameplay after the mechanics update, view 2",
       "provenance": {
         "kind": "ci_gameplay_capture",
-        "sourcePath": "arcade/capture-evidence/ci-20261102-02.png",
-        "sourceSha256": "93f751930e5017f7923ae26ddb49d5084cbb3f4e4767159585d327ba5fcc4d0c",
-        "captureCommit": "fbd8b295ff34c5761fc807c7c18b8bfab33275fe",
-        "workflowRunId": "41439799699",
+        "sourcePath": "arcade/capture-evidence/review-20261103-02.png",
+        "sourceSha256": "9c4f50f118d3c7b4b73b43de0f3926705b00f008bb272dc45fbb3fd509941d5f",
+        "captureCommit": "d61397125043d67ca197302489bac2f91b1ab6ac",
+        "workflowRunId": "41676504176",
         "inputHashes": {
-          "index.html": "4276e05930d9ca0431178bba7233cf9c7265abdb921e215301336ab58374f625",
+          "index.html": "9d98455a47104daa191b0f68631ae009b12a2fbf3e9badaa89e711f699fa729f",
           "styles.css": "876c5f97b294faf6d9646f968aed017f0b9a129945b055e5b686e02c9a0f0c6b",
-          "game.js": "28d01ebc8586add965622b18b6100134f2ac331cb37793d0e260eb1f1be450e1"
+          "game.js": "70097c96086829e90abbc9afefb97e51c72e04065cc235b7a6850328f5505597"
         },
-        "publishedFilesVerifiedAt": "2026-11-02T19:01:20Z",
-        "captureRecordPath": "arcade/capture-evidence/ci-20261102-record.json",
-        "captureRecordSha256": "ab2e21ac2b8a63c73a9b7731cd6afa502fdcdb3483c627b5cf2c92cb37fd407e"
+        "publishedFilesVerifiedAt": "2026-11-03T16:43:43Z",
+        "captureRecordPath": "arcade/capture-evidence/review-20261103-record.json",
+        "captureRecordSha256": "82683a2e4b83acff057775a2a538576db8ed908631247ea9fadf8065f26a720b"
       }
     }
   ]

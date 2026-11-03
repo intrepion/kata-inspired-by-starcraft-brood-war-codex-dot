@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "workflowCommit": "d61397125043d67ca197302489bac2f91b1ab6ac",
+  "sourceCommit": "d61397125043d67ca197302489bac2f91b1ab6ac",
+  "runId": "41676504176",
+  "url": "http://127.0.0.1:4280/",
+  "inputs": {
+    "index.html": "9d98455a47104daa191b0f68631ae009b12a2fbf3e9badaa89e711f699fa729f",
+    "styles.css": "876c5f97b294faf6d9646f968aed017f0b9a129945b055e5b686e02c9a0f0c6b",
+    "game.js": "70097c96086829e90abbc9afefb97e51c72e04065cc235b7a6850328f5505597"
+  },
+  "browser": "153.0.8010.12",
+  "viewport": {
+    "width": 960,
+    "height": 750
+  },
+  "screenshots": [
+    "cinder-relay-01.png",
+    "cinder-relay-02.png"
+  ]
+}
