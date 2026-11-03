@@ -5,6 +5,7 @@
     "moduleResolution": "NodeNext",
     "strict": true,
     "outDir": "build",
+    "rootDir": "src",
     "lib": ["ES2022", "DOM"],
     "skipLibCheck": true
   },
