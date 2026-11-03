@@ -1,5 +1,7 @@
 # Cinder Relay
 
+[Kata Arcade](https://intrepion.github.io/)
+
 An original compact science-fiction real-time strategy game. The Lumen Expedition and the autonomous Hollow Array fight over a signal site on Aster. One playable faction, one hand-designed battlefield, two AI difficulty settings. All visual assets are procedural Canvas art; original synthesized ambient tones and command signals use Web Audio. No runtime dependencies, paid services, or public deployment.
 
 ## Play
