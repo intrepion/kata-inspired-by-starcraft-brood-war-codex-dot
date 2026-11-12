@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.1.0
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@v7.1.0
         with:
           node-version: "24"
           package-manager-cache: false
@@ -23,7 +23,7 @@ jobs:
       - run: npm test
       - run: npm run build
       - run: cp -R public/arcade dist/arcade
-      - uses: actions/upload-pages-artifact@v4
+      - uses: actions/upload-pages-artifact@v4.0.0
         with:
           path: dist
   deploy:
@@ -39,4 +39,4 @@ jobs:
     steps:
       - name: Deploy playable site
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v4.0.5
